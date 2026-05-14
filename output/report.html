@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Security Analysis Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d1117; color: #e6edf3; }
+        .header { background: linear-gradient(135deg, #161b22, #21262d); padding: 40px; border-bottom: 1px solid #30363d; }
+        .header h1 { font-size: 28px; color: #58a6ff; margin-bottom: 8px; }
+        .header p { color: #8b949e; font-size: 14px; }
+        .header .nist-badge { display: inline-block; background: #1f6feb22; border: 1px solid #1f6feb; color: #58a6ff; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-top: 10px; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 30px; }
+        .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; text-align: center; }
+        .stat-card .number { font-size: 36px; font-weight: bold; margin-bottom: 4px; }
+        .stat-card .label { font-size: 12px; color: #8b949e; text-transform: uppercase; }
+        .critical { color: #f85149; }
+        .high { color: #ff7b72; }
+        .medium { color: #f0883e; }
+        .low { color: #3fb950; }
+        .blue { color: #58a6ff; }
+        .section-title { font-size: 18px; color: #e6edf3; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #30363d; }
+        .password-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+        .password-card:hover { border-color: #58a6ff44; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+        .password-masked { font-family: 'Courier New', monospace; font-size: 16px; color: #e6edf3; }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .badge-critical { background: #f8514922; color: #f85149; border: 1px solid #f85149; }
+        .badge-high { background: #ff7b7222; color: #ff7b72; border: 1px solid #ff7b72; }
+        .badge-medium { background: #f0883e22; color: #f0883e; border: 1px solid #f0883e; }
+        .badge-low { background: #3fb95022; color: #3fb950; border: 1px solid #3fb950; }
+        .score-bar { background: #21262d; border-radius: 4px; height: 8px; margin-bottom: 16px; }
+        .score-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+        .meta-row { display: flex; gap: 20px; margin-bottom: 12px; flex-wrap: wrap; }
+        .meta-item { font-size: 13px; color: #8b949e; }
+        .meta-item span { color: #e6edf3; }
+        .findings-title { font-size: 13px; font-weight: bold; color: #8b949e; margin-bottom: 8px; }
+        .finding-item { background: #21262d; border-left: 3px solid; border-radius: 0 4px 4px 0; padding: 10px 14px; margin-bottom: 8px; }
+        .finding-item.CRITICAL { border-color: #f85149; }
+        .finding-item.HIGH { border-color: #ff7b72; }
+        .finding-item.MEDIUM { border-color: #f0883e; }
+        .finding-item.LOW { border-color: #3fb950; }
+        .finding-rule { font-size: 12px; font-weight: bold; color: #8b949e; text-transform: uppercase; margin-bottom: 4px; }
+        .finding-detail { font-size: 13px; color: #e6edf3; margin-bottom: 4px; }
+        .finding-nist { font-size: 11px; color: #58a6ff; }
+        .passed-item { font-size: 12px; color: #3fb950; padding: 2px 0; }
+        .passed-item::before { content: "✓ "; }
+        .hibp-warning { background: #f8514911; border: 1px solid #f85149; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px; color: #f85149; }
+        .footer { text-align: center; padding: 30px; color: #8b949e; font-size: 12px; border-top: 1px solid #30363d; margin-top: 30px; }
+        .nist-info { background: #161b22; border: 1px solid #1f6feb; border-radius: 8px; padding: 20px; margin-bottom: 30px; }
+        .nist-info h3 { color: #58a6ff; margin-bottom: 10px; }
+        .nist-info p { color: #8b949e; font-size: 13px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Password Security Analysis Report</h1>
+        <p>Generated on 14 May 2026 at 03:03:28</p>
+        <div class="nist-badge">NIST SP 800-63B Revision 4 (August 2025)</div>
+    </div>
+
+    <div class="container">
+
+        <div class="nist-info">
+            <h3>About This Report</h3>
+            <p>Each password was analysed against <strong>NIST SP 800-63B Revision 4 (August 2025)</strong>, which emphasises password length over complexity, requires screening against breach databases, and prohibits commonly used passwords. Passwords were also checked against the <strong>HaveIBeenPwned database</strong> of over 1 billion compromised credentials using k-anonymity — no plaintext passwords were transmitted.</p>
+        </div>
+
+        <div class="summary-grid">
+            <div class="stat-card">
+                <div class="number blue">22</div>
+                <div class="label">Analysed</div>
+            </div>
+            <div class="stat-card">
+                <div class="number critical">14</div>
+                <div class="label">Critical Risk</div>
+            </div>
+            <div class="stat-card">
+                <div class="number high">4</div>
+                <div class="label">High Risk</div>
+            </div>
+            <div class="stat-card">
+                <div class="number medium">1</div>
+                <div class="label">Medium Risk</div>
+            </div>
+            <div class="stat-card">
+                <div class="number low">3</div>
+                <div class="label">Low Risk</div>
+            </div>
+            <div class="stat-card">
+                <div class="number critical">19</div>
+                <div class="label">Found in HIBP</div>
+            </div>
+            <div class="stat-card">
+                <div class="number medium">17</div>
+                <div class="label">Below NIST Min</div>
+            </div>
+            <div class="stat-card">
+                <div class="number blue">22</div>
+                <div class="label">Avg Score</div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Detailed Findings</h2>
+
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">p******d</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 0/100</span>
+                    <span class="badge badge-critical">CRITICAL</span>
+                    
+                    <span class="badge badge-critical">HIBP: 52,256,179 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:0%; background:darkred;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>8 characters</span></div>
+                <div class="meta-item">Findings: <span>3</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">2</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">0</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 52,256,179 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (3)</div>
+            
+            <div class="finding-item MEDIUM">
+                <div class="finding-rule">MEDIUM — Recommended Length</div>
+                <div class="finding-detail">Password is 8 characters. NIST SP 800-63B Rev 4 recommends a minimum of 15 characters for single-factor authentication.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — Common Password Blacklist</div>
+                <div class="finding-detail">Password appears on the common passwords blocklist. NIST SP 800-63B requires passwords be screened against lists of commonly used and previously breached values.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 52,256,179 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (2)</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">P*******1</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 0/100</span>
+                    <span class="badge badge-critical">CRITICAL</span>
+                    
+                    <span class="badge badge-critical">HIBP: 3,451,129 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:0%; background:darkred;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>9 characters</span></div>
+                <div class="meta-item">Findings: <span>3</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">2</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">0</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 3,451,129 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (3)</div>
+            
+            <div class="finding-item MEDIUM">
+                <div class="finding-rule">MEDIUM — Recommended Length</div>
+                <div class="finding-detail">Password is 9 characters. NIST SP 800-63B Rev 4 recommends a minimum of 15 characters for single-factor authentication.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — Common Password Blacklist</div>
+                <div class="finding-detail">Password appears on the common passwords blocklist. NIST SP 800-63B requires passwords be screened against lists of commonly used and previously breached values.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 3,451,129 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (2)</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">1****6</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 0/100</span>
+                    <span class="badge badge-critical">CRITICAL</span>
+                    
+                    <span class="badge badge-critical">HIBP: 209,972,844 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:0%; background:darkred;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>6 characters</span></div>
+                <div class="meta-item">Findings: <span>4</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">3</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">1</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 209,972,844 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (4)</div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — Minimum Length</div>
+                <div class="finding-detail">Password is only 6 characters. NIST SP 800-63B requires at least 8 characters minimum, with 15 strongly recommended.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item HIGH">
+                <div class="finding-rule">HIGH — Sequential Characters</div>
+                <div class="finding-detail">Password contains sequential characters ('1234'). These patterns are easily guessed by automated attack tools.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — Common Password Blacklist</div>
+                <div class="finding-detail">Password appears on the common passwords blocklist. NIST SP 800-63B requires passwords be screened against lists of commonly used and previously breached values.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 209,972,844 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (1)</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">1*****7</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 0/100</span>
+                    <span class="badge badge-critical">CRITICAL</span>
+                    
+                    <span class="badge badge-critical">HIBP: 19,842,479 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:0%; background:darkred;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>7 characters</span></div>
+                <div class="meta-item">Findings: <span>4</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">3</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">1</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 19,842,479 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (4)</div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — Minimum Length</div>
+                <div class="finding-detail">Password is only 7 characters. NIST SP 800-63B requires at least 8 characters minimum, with 15 strongly recommended.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item HIGH">
+                <div class="finding-rule">HIGH — Sequential Characters</div>
+                <div class="finding-detail">Password contains sequential characters ('1234'). These patterns are easily guessed by automated attack tools.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — Common Password Blacklist</div>
+                <div class="finding-detail">Password appears on the common passwords blocklist. NIST SP 800-63B requires passwords be screened against lists of commonly used and previously breached values.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 19,842,479 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (1)</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">1******8</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 0/100</span>
+                    <span class="badge badge-critical">CRITICAL</span>
+                    
+                    <span class="badge badge-critical">HIBP: 70,382,347 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:0%; background:darkred;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>8 characters</span></div>
+                <div class="meta-item">Findings: <span>4</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">2</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">1</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 70,382,347 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (4)</div>
+            
+            <div class="finding-item MEDIUM">
+                <div class="finding-rule">MEDIUM — Recommended Length</div>
+                <div class="finding-detail">Password is 8 characters. NIST SP 800-63B Rev 4 recommends a minimum of 15 characters for single-factor authentication.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item HIGH">
+                <div class="finding-rule">HIGH — Sequential Characters</div>
+                <div class="finding-detail">Password contains sequential characters ('1234'). These patterns are easily guessed by automated attack tools.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — Common Password Blacklist</div>
+                <div class="finding-detail">Password appears on the common passwords blocklist. NIST SP 800-63B requires passwords be screened against lists of commonly used and previously breached values.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 70,382,347 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (1)</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">0********1</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 20/100</span>
+                    <span class="badge badge-high">HIGH</span>
+                    
+                    <span class="badge badge-critical">HIBP: 3,076,080 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:20%; background:red;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>10 characters</span></div>
+                <div class="meta-item">Findings: <span>2</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">1</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">0</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 3,076,080 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (2)</div>
+            
+            <div class="finding-item MEDIUM">
+                <div class="finding-rule">MEDIUM — Recommended Length</div>
+                <div class="finding-detail">Password is 10 characters. NIST SP 800-63B Rev 4 recommends a minimum of 15 characters for single-factor authentication.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 3,076,080 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (3)</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            <div class="passed-item">Not found on common password blocklist</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">1**********6</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 20/100</span>
+                    <span class="badge badge-high">HIGH</span>
+                    
+                    <span class="badge badge-critical">HIBP: 519,099 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:20%; background:red;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>12 characters</span></div>
+                <div class="meta-item">Findings: <span>2</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">1</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">0</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 519,099 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (2)</div>
+            
+            <div class="finding-item MEDIUM">
+                <div class="finding-rule">MEDIUM — Recommended Length</div>
+                <div class="finding-detail">Password is 12 characters. NIST SP 800-63B Rev 4 recommends a minimum of 15 characters for single-factor authentication.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 519,099 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (3)</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            <div class="passed-item">Not found on common password blocklist</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">1******4</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 0/100</span>
+                    <span class="badge badge-critical">CRITICAL</span>
+                    
+                    <span class="badge badge-critical">HIBP: 2,864,987 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:0%; background:darkred;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>8 characters</span></div>
+                <div class="meta-item">Findings: <span>3</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">1</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">1</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 2,864,987 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (3)</div>
+            
+            <div class="finding-item MEDIUM">
+                <div class="finding-rule">MEDIUM — Recommended Length</div>
+                <div class="finding-detail">Password is 8 characters. NIST SP 800-63B Rev 4 recommends a minimum of 15 characters for single-factor authentication.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item HIGH">
+                <div class="finding-rule">HIGH — Sequential Characters</div>
+                <div class="finding-detail">Password contains sequential characters ('1234'). These patterns are easily guessed by automated attack tools.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 2,864,987 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (2)</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            <div class="passed-item">Not found on common password blocklist</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">l*****n</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 0/100</span>
+                    <span class="badge badge-critical">CRITICAL</span>
+                    
+                    <span class="badge badge-critical">HIBP: 1,406,394 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:0%; background:darkred;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>7 characters</span></div>
+                <div class="meta-item">Findings: <span>3</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">3</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">0</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 1,406,394 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (3)</div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — Minimum Length</div>
+                <div class="finding-detail">Password is only 7 characters. NIST SP 800-63B requires at least 8 characters minimum, with 15 strongly recommended.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — Common Password Blacklist</div>
+                <div class="finding-detail">Password appears on the common passwords blocklist. NIST SP 800-63B requires passwords be screened against lists of commonly used and previously breached values.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 1,406,394 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (2)</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">W******1</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 0/100</span>
+                    <span class="badge badge-critical">CRITICAL</span>
+                    
+                    <span class="badge badge-critical">HIBP: 1,346,704 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:0%; background:darkred;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>8 characters</span></div>
+                <div class="meta-item">Findings: <span>3</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">2</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">0</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 1,346,704 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (3)</div>
+            
+            <div class="finding-item MEDIUM">
+                <div class="finding-rule">MEDIUM — Recommended Length</div>
+                <div class="finding-detail">Password is 8 characters. NIST SP 800-63B Rev 4 recommends a minimum of 15 characters for single-factor authentication.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — Common Password Blacklist</div>
+                <div class="finding-detail">Password appears on the common passwords blocklist. NIST SP 800-63B requires passwords be screened against lists of commonly used and previously breached values.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 1,346,704 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (2)</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">P******d</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 0/100</span>
+                    <span class="badge badge-critical">CRITICAL</span>
+                    
+                    <span class="badge badge-critical">HIBP: 6,421,042 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:0%; background:darkred;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>8 characters</span></div>
+                <div class="meta-item">Findings: <span>3</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">2</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">0</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 6,421,042 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (3)</div>
+            
+            <div class="finding-item MEDIUM">
+                <div class="finding-rule">MEDIUM — Recommended Length</div>
+                <div class="finding-detail">Password is 8 characters. NIST SP 800-63B Rev 4 recommends a minimum of 15 characters for single-factor authentication.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — Common Password Blacklist</div>
+                <div class="finding-detail">Password appears on the common passwords blocklist. NIST SP 800-63B requires passwords be screened against lists of commonly used and previously breached values.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 6,421,042 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (2)</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">i******u</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 0/100</span>
+                    <span class="badge badge-critical">CRITICAL</span>
+                    
+                    <span class="badge badge-critical">HIBP: 7,007,763 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:0%; background:darkred;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>8 characters</span></div>
+                <div class="meta-item">Findings: <span>3</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">2</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">0</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 7,007,763 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (3)</div>
+            
+            <div class="finding-item MEDIUM">
+                <div class="finding-rule">MEDIUM — Recommended Length</div>
+                <div class="finding-detail">Password is 8 characters. NIST SP 800-63B Rev 4 recommends a minimum of 15 characters for single-factor authentication.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — Common Password Blacklist</div>
+                <div class="finding-detail">Password appears on the common passwords blocklist. NIST SP 800-63B requires passwords be screened against lists of commonly used and previously breached values.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 7,007,763 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (2)</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">a******3</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 0/100</span>
+                    <span class="badge badge-critical">CRITICAL</span>
+                    
+                    <span class="badge badge-critical">HIBP: 4,840,952 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:0%; background:darkred;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>8 characters</span></div>
+                <div class="meta-item">Findings: <span>3</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">2</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">0</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 4,840,952 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (3)</div>
+            
+            <div class="finding-item MEDIUM">
+                <div class="finding-rule">MEDIUM — Recommended Length</div>
+                <div class="finding-detail">Password is 8 characters. NIST SP 800-63B Rev 4 recommends a minimum of 15 characters for single-factor authentication.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — Common Password Blacklist</div>
+                <div class="finding-detail">Password appears on the common passwords blocklist. NIST SP 800-63B requires passwords be screened against lists of commonly used and previously breached values.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 4,840,952 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (2)</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">S*********!</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 40/100</span>
+                    <span class="badge badge-high">HIGH</span>
+                    
+                    <span class="badge badge-critical">HIBP: 3,498 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:40%; background:red;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>11 characters</span></div>
+                <div class="meta-item">Findings: <span>2</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">0</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">1</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 3,498 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (2)</div>
+            
+            <div class="finding-item MEDIUM">
+                <div class="finding-rule">MEDIUM — Recommended Length</div>
+                <div class="finding-detail">Password is 11 characters. NIST SP 800-63B Rev 4 recommends a minimum of 15 characters for single-factor authentication.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item HIGH">
+                <div class="finding-rule">HIGH — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 3,498 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (3)</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            <div class="passed-item">Not found on common password blocklist</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">c***********************e</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 60/100</span>
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="badge badge-critical">HIBP: 4,163 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:60%; background:orange;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>25 characters</span></div>
+                <div class="meta-item">Findings: <span>1</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">0</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">1</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 4,163 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (1)</div>
+            
+            <div class="finding-item HIGH">
+                <div class="finding-rule">HIGH — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 4,163 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (4)</div>
+            
+            <div class="passed-item">Length is 25 characters - meets NIST minimum of 15</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            <div class="passed-item">Not found on common password blocklist</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">T*********3</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 40/100</span>
+                    <span class="badge badge-high">HIGH</span>
+                    
+                    <span class="badge badge-critical">HIBP: 3,189 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:40%; background:red;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>11 characters</span></div>
+                <div class="meta-item">Findings: <span>2</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">0</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">1</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 3,189 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (2)</div>
+            
+            <div class="finding-item MEDIUM">
+                <div class="finding-rule">MEDIUM — Recommended Length</div>
+                <div class="finding-detail">Password is 11 characters. NIST SP 800-63B Rev 4 recommends a minimum of 15 characters for single-factor authentication.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item HIGH">
+                <div class="finding-rule">HIGH — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 3,189 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (3)</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            <div class="passed-item">Not found on common password blocklist</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">M*****************9</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 100/100</span>
+                    <span class="badge badge-low">LOW</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:100%; background:green;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>19 characters</span></div>
+                <div class="meta-item">Findings: <span>0</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">0</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">0</span></div>
+            </div>
+
+            
+
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (5)</div>
+            
+            <div class="passed-item">Length is 19 characters - meets NIST minimum of 15</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            <div class="passed-item">Not found on common password blocklist</div>
+            
+            <div class="passed-item">Not found in HaveIBeenPwned breach database</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">T**************************************************g</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 100/100</span>
+                    <span class="badge badge-low">LOW</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:100%; background:green;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>52 characters</span></div>
+                <div class="meta-item">Findings: <span>0</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">0</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">0</span></div>
+            </div>
+
+            
+
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (5)</div>
+            
+            <div class="passed-item">Length is 52 characters - meets NIST minimum of 15</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            <div class="passed-item">Not found on common password blocklist</div>
+            
+            <div class="passed-item">Not found in HaveIBeenPwned breach database</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">a*************a</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 15/100</span>
+                    <span class="badge badge-critical">CRITICAL</span>
+                    
+                    <span class="badge badge-critical">HIBP: 33,758 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:15%; background:darkred;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>15 characters</span></div>
+                <div class="meta-item">Findings: <span>2</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">1</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">1</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 33,758 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (2)</div>
+            
+            <div class="finding-item HIGH">
+                <div class="finding-rule">HIGH — Repetitive Characters</div>
+                <div class="finding-detail">Password contains repetitive characters ('aaaaaaaaaaaaaaa'). Repetitive patterns significantly reduce password entropy.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 33,758 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (3)</div>
+            
+            <div class="passed-item">Length is 15 characters - meets NIST minimum of 15</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">Not found on common password blocklist</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">q********p</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 0/100</span>
+                    <span class="badge badge-critical">CRITICAL</span>
+                    
+                    <span class="badge badge-critical">HIBP: 8,978,234 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:0%; background:darkred;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>10 characters</span></div>
+                <div class="meta-item">Findings: <span>3</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">1</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">1</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 8,978,234 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (3)</div>
+            
+            <div class="finding-item MEDIUM">
+                <div class="finding-rule">MEDIUM — Recommended Length</div>
+                <div class="finding-detail">Password is 10 characters. NIST SP 800-63B Rev 4 recommends a minimum of 15 characters for single-factor authentication.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item HIGH">
+                <div class="finding-rule">HIGH — Sequential Characters</div>
+                <div class="finding-detail">Password contains sequential characters ('qwer'). These patterns are easily guessed by automated attack tools.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 8,978,234 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (2)</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            <div class="passed-item">Not found on common password blocklist</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">a******k</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 0/100</span>
+                    <span class="badge badge-critical">CRITICAL</span>
+                    
+                    <span class="badge badge-critical">HIBP: 804,096 breaches</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:0%; background:darkred;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>8 characters</span></div>
+                <div class="meta-item">Findings: <span>3</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">1</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">1</span></div>
+            </div>
+
+            
+            <div class="hibp-warning">
+                HaveIBeenPwned: This password has appeared in 804,096 known data breaches and must not be used.
+            </div>
+            
+
+            
+            <div class="findings-title">Issues Found (3)</div>
+            
+            <div class="finding-item MEDIUM">
+                <div class="finding-rule">MEDIUM — Recommended Length</div>
+                <div class="finding-detail">Password is 8 characters. NIST SP 800-63B Rev 4 recommends a minimum of 15 characters for single-factor authentication.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item HIGH">
+                <div class="finding-rule">HIGH — Sequential Characters</div>
+                <div class="finding-detail">Password contains sequential characters ('asdf'). These patterns are easily guessed by automated attack tools.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            <div class="finding-item CRITICAL">
+                <div class="finding-rule">CRITICAL — HaveIBeenPwned Database</div>
+                <div class="finding-detail">Password has been found 804,096 times in known data breaches. NIST SP 800-63B requires passwords be checked against breach databases. This password must not be used.</div>
+                <div class="finding-nist">NIST SP 800-63B Rev 4 Section 3.1.1</div>
+            </div>
+            
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (2)</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            <div class="passed-item">Not found on common password blocklist</div>
+            
+            
+        </div>
+        
+        <div class="password-card">
+            <div class="card-header">
+                <div class="password-masked">X**************B</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:13px; color:#8b949e;">Score: 100/100</span>
+                    <span class="badge badge-low">LOW</span>
+                    
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width:100%; background:green;"></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Length: <span>16 characters</span></div>
+                <div class="meta-item">Findings: <span>0</span></div>
+                <div class="meta-item">Critical: <span style="color:#f85149">0</span></div>
+                <div class="meta-item">High: <span style="color:#ff7b72">0</span></div>
+            </div>
+
+            
+
+            
+
+            
+            <div class="findings-title" style="margin-top:12px;">Checks Passed (5)</div>
+            
+            <div class="passed-item">Length is 16 characters - meets NIST minimum of 15</div>
+            
+            <div class="passed-item">No sequential character patterns detected</div>
+            
+            <div class="passed-item">No repetitive character patterns detected</div>
+            
+            <div class="passed-item">Not found on common password blocklist</div>
+            
+            <div class="passed-item">Not found in HaveIBeenPwned breach database</div>
+            
+            
+        </div>
+        
+
+    </div>
+
+    <div class="footer">
+        <p>Password Security Analyser | NIST SP 800-63B Rev 4 | HaveIBeenPwned API</p>
+        <p style="margin-top:4px;">Built by Adam | github.com/Adam-Suvarna/password-analyser</p>
+    </div>
+</body>
+</html>
