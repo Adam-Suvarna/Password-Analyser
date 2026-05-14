@@ -1,6 +1,6 @@
 # Python Password Security Analyser
 
-I built this after finishing my Azure honeypot project. Watching 80,000 real
+I built this small Python project after finishing my Azure honeypot project. Watching 80,000 real
 brute force attacks hit a server and seeing the usernames being tried (admin,
 password, 123456) made me want to build something that shows exactly why
 those attacks work so often. This tool is the answer to that question.
