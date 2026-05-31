@@ -1,4 +1,4 @@
-# Python Password Security Analyser
+# Password Analyser
 
 I built this small Python project after finishing my Azure honeypot project. Watching 80,000 real
 brute force attacks hit a server and seeing the usernames being tried (admin,
@@ -97,7 +97,7 @@ Add your passwords to `passwords.txt` one per line. The report saves to
 ## Files
 
 ```
-python-password-analyser/
+Password-Analyser/
 |
 +-- analyser.py
 +-- report_template.html
